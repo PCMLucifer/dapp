@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 
 class Main extends Component {
 
+
   render() {
+
     return (
       <div id="content">
         <h1>Add Proposal</h1>
@@ -46,33 +48,39 @@ class Main extends Component {
                 <tr key={key}>
                   <th scope="row">{proposal.id.toString()}</th>
                   <td>{proposal.name}</td>
-  
+                  
+                  <td>For {this.props.proposals.voteFor} </td>
                   <td>
-
+                    
                     <button
                           name={proposal.id}
                           
                           onClick={(event) => {
                             this.props.voteFor(event.target.name)
-                             // triba adresa ne name
+                          
                           }}
                         >
                           Vote for
                         </button>
                     </td>
+                   
+                    <td>   Agaisnt  {this.props.proposals.voteAgainst}  </td>
                     <td>
+
                     <button
                           name={proposal.id}
                           
                           onClick={(event) => {
                             this.props.voteAgainst(event.target.name)
-                             // triba adresa ne name
+                     
                           }}
                         >
                           Vote Against
                         </button>
                         
                     </td>
+                    
+                
                 </tr>
               );
             })}
@@ -80,14 +88,17 @@ class Main extends Component {
         </table>
 
 
-
-          <h1>Register voter</h1>
+         
+          
+        
           
         <form onSubmit={(event) => {
           event.preventDefault()
           const name = this.voter.value
           this.props.registrateVoter(name)
         }}>
+
+        <h1>Register voter</h1>
 
           <div className="form-group mr-sm-2">
             <input
@@ -102,7 +113,8 @@ class Main extends Component {
 
           <button type="submit" className="btn btn-primary">registrate Voter </button>
         </form>
-
+      
+    
         <table className="table">
           <thead>
             <tr>
@@ -123,9 +135,9 @@ class Main extends Component {
                   <td>{voter.name}</td>
   
                   <td>
-                  { voter.delegate==null
-                    ?<button
-                          name={voter.myaddress}
+
+                    <button
+                          name={voter.id}
                           
                           onClick={(event) => {
                             this.props.delegateVote(event.target.name)
@@ -135,8 +147,7 @@ class Main extends Component {
                         >
                           Delegate your vote to this person
                         </button>
-                        : null
-                      }
+                                             
                     </td>
                     
                 </tr>
