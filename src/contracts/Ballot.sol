@@ -7,24 +7,44 @@ pragma solidity >=0.4.22 <0.7.0;
 contract Ballot {
    
     struct Voter {
+         //ID used for mapping
         uint id;
+        
+        //address of the voter. used to locate the voter during voting
         address myaddress;
-        uint weight; // weight is accumulated by delegation // if true, that person already voted
-       // person voters[i]  to
+        
+        // weight of your vote, seach delegation to a certain voter increises weight by 1
+        uint weight; 
+        
+        // name of the voter
         string name;
+        
+        //ID of the person we delegate our vote
         uint delegate;
+        
+        //list of peopel who delegated votes to us
         uint[] delegatorList;
 
     }
  
 
     struct Proposal {
+    // id of the proposal used for mapping
         uint id;
+        
+        //list of voter id's who already voted
         uint[] voterList;
-        string name;   // short name (up to 32 bytes)
+        
+        //name of the proposal
+        string name;   
        
-        uint voteFor; // number of accumulated votes
+       //votes in davor of the proposal
+        uint voteFor; 
+        
+        //votes agaisnt the proposal
         uint voteAgainst;
+        
+        //total number of votes
         uint totalvote;
     }
     event proposaladded(
