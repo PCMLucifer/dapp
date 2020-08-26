@@ -200,7 +200,7 @@ contract Ballot {
         proposals[_proposalId].voteFor++;
         proposals[_proposalId].totalvote++;
         //adding the voter and his potential delegators to the list of peopel who voted on the proposition
-        proposals[_proposalId].voterList.push(_sender)
+        proposals[_proposalId].voterList.push(_sender);
         for(uint n=0;n<voters[_sender].delegatorList.length;n++){
 
             proposals[_proposalId].voterList.push(voters[_sender].delegatorList[n]);
