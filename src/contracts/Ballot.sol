@@ -56,14 +56,12 @@ contract Ballot {
         uint totalvote
         );
     
-
+    // counters of the total numbers of voters adn probpsals
     uint public voterCount=0;
-
     uint public proposalCount=0;
 
-
+    //voter and proposal mapping
     mapping(uint => Voter) public voters;
-
     mapping(uint=>Proposal) public proposals;
 
 
@@ -72,12 +70,15 @@ contract Ballot {
 
        
     }
-    function registrateVoter (string memory _name) public{
 
+    function registrateVoter (string memory _name) public{
+        //cheking if the person calling the function has already registrated as a voter
         for(uint i=0;i<=voterCount;i++){
             Voter storage test=voters[i];
             require(test.myaddress!=msg.sender,"_voter already registerated");
         }
+
+        //creation of a new voter
         voterCount++;
         voters[voterCount]=Voter(voterCount,msg.sender, 1,_name,0,new uint[](0));
 
@@ -93,17 +94,24 @@ contract Ballot {
         address _delegator=msg.sender;
         uint _sender=0;
         uint _wt=voters[_to].weight;
-        _wt++;        
+        _wt++;
+
+        //cheking if the person calling the function is a registrated voter        
         for(uint i=0;i<=voterCount;i++){
  
             if(voters[i].myaddress==_delegator){
-                _sender=i;
+                _sender=i; //saving the index of a the voter
                 break;
             }else if(i==voterCount && voters[i].myaddress!=_delegator){
                 require (voters[i].myaddress==_delegator,"unregistrated _voter");    
             }
         }
 
+        /*cheking if the ID of a voter we're delegating to is valid
+            if the voter hasn't delegated their vote
+            if this is an attempt of self delegation
+            and if the delegator has delegated his vote already or is himself a delegator
+        */
         require(voters[_to].id==_to,"invalid id");
          require (voters[_to].weight!=0,"can't delegate to someone who delegate his vote");    
           require (voters[_to].id!=_sender,"can't delegate to yourself");    
@@ -124,18 +132,24 @@ contract Ballot {
         uint _sender=0;
         uint _tmp=0;
 
+        //checking the validity of the sender as a registrated voter
         for(uint i=0;i<=voterCount;i++){
             if(voters[i].myaddress==msg.sender){
-                _sender=i;
+                _sender=i; //saving the senders ID
                 break;
             }else if(i==voterCount && voters[i].myaddress!=msg.sender){
                 require (voters[i].myaddress==msg.sender,"unregistrated _voter");    
             }
         }
-
+        //checking if the sender actualyl ahs a delegate
         require (voters[_sender].delegate!=0,"you do not have a delegate"); 
         uint _del=voters[_sender].delegate;
+
         voters[_del].weight--;
+
+        /*deletion of the senders ID from the delegates delegator list
+            nested loop was deemed necessery to eliminate empty palces in the delegator lsit
+        */
         for(uint j=0;j<voters[_del].delegatorList.length;j++){
             if(voters[_del].delegatorList[j]!=_sender){
                delete voters[_del].delegatorList[j];
@@ -165,7 +179,7 @@ contract Ballot {
         address _voter=msg.sender;
         uint _sender=0;
         
-
+        //checking validity and saving the voters index
         for(uint i=0;i<=voterCount;i++){
 
             if(voters[i].myaddress==_voter){
@@ -175,7 +189,8 @@ contract Ballot {
                 require (voters[i].myaddress==_voter,"unregistrated _voter");    
             }
         }
-
+        /*requirement for the voter not to have a delegate 
+        or have been registrated as voted on the proposition*/
         require (voters[_sender].delegate==0,"You have delegated  your vote, please cancle your delegation in ordewr to vote");
          for(uint j=0;j<proposals[_proposalId].voterList.length;j++){
 
@@ -184,8 +199,10 @@ contract Ballot {
         }
         proposals[_proposalId].voteFor++;
         proposals[_proposalId].totalvote++;
-
+        //adding the voter and his potential delegators to the list of peopel who voted on the proposition
+        proposals[_proposalId].voterList.push(_sender)
         for(uint n=0;n<voters[_sender].delegatorList.length;n++){
+
             proposals[_proposalId].voterList.push(voters[_sender].delegatorList[n]);
 
 
