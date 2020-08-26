@@ -6,7 +6,7 @@ pragma solidity >=0.4.22 <0.7.0;
  */
 contract Ballot {
    
-    struct Voter {
+       struct Voter {
          //ID used for mapping
         uint id;
         
@@ -76,7 +76,7 @@ contract Ballot {
 
         for(uint i=0;i<=voterCount;i++){
             Voter storage test=voters[i];
-            require(test.myaddress!=msg.sender,"voter already registerated");
+            require(test.myaddress!=msg.sender,"_voter already registerated");
         }
         voterCount++;
         voters[voterCount]=Voter(voterCount,msg.sender, 1,_name,0,new uint[](0));
@@ -90,59 +90,68 @@ contract Ballot {
     
     
     function delegateVote(uint  _to) public {
-        address delegator=msg.sender;
-        uint sender=0;
-        uint wt=voters[_to].weight;
-        wt++;        
+        address _delegator=msg.sender;
+        uint _sender=0;
+        uint _wt=voters[_to].weight;
+        _wt++;        
         for(uint i=0;i<=voterCount;i++){
  
-            if(voters[i].myaddress==delegator){
-                sender=i;
+            if(voters[i].myaddress==_delegator){
+                _sender=i;
                 break;
-            }else if(i==voterCount && voters[i].myaddress!=delegator){
-                require (voters[i].myaddress==delegator,"unregistrated voter");    
+            }else if(i==voterCount && voters[i].myaddress!=_delegator){
+                require (voters[i].myaddress==_delegator,"unregistrated _voter");    
             }
         }
 
         require(voters[_to].id==_to,"invalid id");
          require (voters[_to].weight!=0,"can't delegate to someone who delegate his vote");    
-          require (voters[_to].id!=sender,"can't delegate to yourself");    
-         require (voters[sender].weight==1,"you have either delegated your vote or have votes delegated on yourself");    
+          require (voters[_to].id!=_sender,"can't delegate to yourself");    
+         require (voters[_sender].weight==1,"you have either delegated your vote or have votes delegated on yourself");    
         
-        voters[sender].delegate = _to;
-        voters[sender].weight=0;
+        voters[_sender].delegate = _to;
+        voters[_sender].weight=0;
         
 
-        voters[_to].weight=wt;
-        voters[_to].delegatorList.push(sender);
+        voters[_to].weight=_wt;
+        voters[_to].delegatorList.push(_sender);
 
         
        
     }
     function cancleDelegation () public{
-        address delegator=msg.sender;
-        uint sender=0;
-        uint del=voters[sender].delegate;
+
+        uint _sender=0;
+        uint _tmp=0;
 
         for(uint i=0;i<=voterCount;i++){
-            if(voters[i].myaddress==delegator){
-                sender=i;
+            if(voters[i].myaddress==msg.sender){
+                _sender=i;
                 break;
-            }else if(i==voterCount && voters[i].myaddress!=delegator){
-                require (voters[i].myaddress==delegator,"unregistrated voter");    
-            }
-        }
-        require (voters[sender].delegate!=0,"you do not have a delegate"); 
-
-        voters[del].weight--;
-        for(uint i;i<=voters[del].delegatorList.length;i++){
-            if(voters[del].delegatorList[i]==sender){
-               voters[del].delegatorList[i]=0;
+            }else if(i==voterCount && voters[i].myaddress!=msg.sender){
+                require (voters[i].myaddress==msg.sender,"unregistrated _voter");    
             }
         }
 
-        voters[sender].delegate = 0;
-        voters[sender].weight=1;
+        require (voters[_sender].delegate!=0,"you do not have a delegate"); 
+        uint _del=voters[_sender].delegate;
+        voters[_del].weight--;
+        for(uint j=0;j<voters[_del].delegatorList.length;j++){
+            if(voters[_del].delegatorList[j]!=_sender){
+               delete voters[_del].delegatorList[j];
+               _tmp=j;
+               while(_tmp<voters[_del].delegatorList.length){
+                   if(_tmp+1==voters[_del].delegatorList.length){
+                       delete voters[_del].delegatorList[_tmp];
+                   }else{
+                       voters[_del].delegatorList[_tmp]=voters[_del].delegatorList[_tmp+1];
+                   }
+               }
+            }
+        }
+
+        voters[_sender].delegate = 0;
+        voters[_sender].weight=1;
 
      
      
@@ -153,32 +162,31 @@ contract Ballot {
     
 
     function voteFor(uint  _proposalId) public {
-        address voter=msg.sender;
-        uint sender=0;
+        address _voter=msg.sender;
+        uint _sender=0;
         
 
         for(uint i=0;i<=voterCount;i++){
 
-            if(voters[i].myaddress==voter){
-                sender=i;
+            if(voters[i].myaddress==_voter){
+                _sender=i;
                 break;
-            }else if(i==voterCount && voters[i].myaddress!=voter){
-                require (voters[i].myaddress==voter,"unregistrated voter");    
+            }else if(i==voterCount && voters[i].myaddress!=_voter){
+                require (voters[i].myaddress==_voter,"unregistrated _voter");    
             }
         }
 
-        require (voters[sender].delegate==0,"You have delegated  your vote, please cancle your delegation in ordewr to vote");
-        for(uint i=0;i<=proposals[_proposalId].voterList.length;i++){
+        require (voters[_sender].delegate==0,"You have delegated  your vote, please cancle your delegation in ordewr to vote");
+         for(uint j=0;j<proposals[_proposalId].voterList.length;j++){
 
-            require (proposals[_proposalId].voterList[i]!=sender, "your vote has been registrated");
+            require (proposals[_proposalId].voterList[j]!=_sender, "your vote has been registrated");
             
         }
         proposals[_proposalId].voteFor++;
         proposals[_proposalId].totalvote++;
 
-        proposals[_proposalId].voterList.push(sender);
-        for(uint i=0;i<=voters[sender].delegatorList.length;i++){
-            proposals[_proposalId].voterList.push(voters[sender].delegatorList[i]);
+        for(uint n=0;n<voters[_sender].delegatorList.length;n++){
+            proposals[_proposalId].voterList.push(voters[_sender].delegatorList[n]);
 
 
         emit proposaladded(proposals[_proposalId].id,proposals[_proposalId].voterList,proposals[_proposalId].name,proposals[_proposalId].voteFor,proposals[_proposalId].voteAgainst,proposals[_proposalId].totalvote);
@@ -188,33 +196,33 @@ contract Ballot {
 
     }
 
-    function voteAgainst(uint  _proposalId) public {
-       address voter=msg.sender;
-        uint sender=0;
+    function voteAgainst(uint _proposalId) public {
+       address _voter=msg.sender;
+        uint _sender=0;
         
 
         for(uint i=0;i<=voterCount;i++){
 
-            if(voters[i].myaddress==voter){
-                sender=i;
+            if(voters[i].myaddress==_voter){
+                _sender=i;
                 break;
-            }else if(i==voterCount && voters[i].myaddress!=voter){
-                require (voters[i].myaddress==voter,"unregistrated voter");    
+            }else if(i==voterCount && voters[i].myaddress!=_voter){
+                require (voters[i].myaddress==_voter,"unregistrated _voter");    
             }
         }
 
-        require (voters[sender].delegate==0,"You have delegated  your vote, please cancle your delegation in ordewr to vote");
-        for(uint i=0;i<=proposals[_proposalId].voterList.length;i++){
+        require (voters[_sender].delegate==0,"You have delegated  your vote, please cancle your delegation in ordewr to vote");
+        for(uint j=0;j<proposals[_proposalId].voterList.length;j++){
 
-            require (proposals[_proposalId].voterList[i]!=sender, "your vote has been registrated");
+            require (proposals[_proposalId].voterList[j]!=_sender, "your vote has been registrated");
             
         }
         proposals[_proposalId].voteAgainst++;
         proposals[_proposalId].totalvote++;
 
-        proposals[_proposalId].voterList.push(sender);
-        for(uint i=0;i<=voters[sender].delegatorList.length;i++){
-            proposals[_proposalId].voterList.push(voters[sender].delegatorList[i]);
+        proposals[_proposalId].voterList.push(_sender);
+        for(uint n=0;n<voters[_sender].delegatorList.length;n++){
+            proposals[_proposalId].voterList.push(voters[_sender].delegatorList[n]);
         }
 
     
